@@ -1,0 +1,45 @@
+---
+# Installing nfs-utils on RHEL clients and create root directory
+- name: install nfs-utils
+  dnf: 
+    name: nfs-utils 
+    state: latest
+
+- name: Create a mountable  root directory if it does not exist
+  become: yes
+  file:
+    path: /sal
+    state: directory
+    owner: root
+    group: root
+    mode: '0775'
+
+
+#- name: 3.8.4.9 Add ClusterShell (Install)
+#  dnf:
+#    name: clustershell
+#    state: latest
+
+#### 
+#- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+#- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+#  with_items:
+#  - mv local.cfg local.cfg.orig
+#  - echo "adm: ${sms_name}" > local.cfg
+#  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+#  - echo "all: @adm,@compute" >> local.cfg
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'adm: "{{headnode_name}}"'
+#    state: present
+#    backup: yes
+
+
+
+
+
+
+

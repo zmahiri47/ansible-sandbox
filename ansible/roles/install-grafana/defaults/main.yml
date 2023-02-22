@@ -1,0 +1,4 @@
+---
+# defaults file for roles/grafana
+
+grafana_admin_password: "5AL-LAB-SVC-U53R"

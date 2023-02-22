@@ -1,0 +1,150 @@
+---
+#- name: "Update cache & Full system update"
+#    apt:
+#      update_cache: true
+#      cache_valid_time: 3600
+#      force_apt_get: true
+
+#- name: "Install Apache server"
+#      apt:
+#        name: apache2
+#        state: latest
+
+
+- name: ensure firewalld service is stopped
+  service:
+    name: firewalld
+    state: stopped
+    enabled: false
+  become: true
+
+- name: Ensure SELinux is set to enforcing mode
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: SELINUX=disabled
+
+- name: disable SELinux for this session
+  command: setenforce 0
+
+
+- name: 3.1 enable OpenHPC repository for local use
+    dnf:
+      name: http://repos.openhpc.community/OpenHPC/2/CentOS_8/x86_64/ohpc-release-2-1.el8.x86_64.rpm
+      state: present
+
+- name: "Install dnf-plugins-core"
+      dnf:
+        name: dnf-plugins-core
+        state: latest
+
+#- name: enable CentOS PowerTools repository for epel
+#  command: dnf config-manager --set-enabled PowerTools
+#  when: powertools.stdout == "disabled"
+
+- name: "Install ohpc-base"
+      dnf:
+        name: ohpc-base
+        state: latest
+
+####### Chronyd NTP
+
+- name: ensure chronyd service is running
+  service:
+    name: chronyd
+    state: started
+    enabled: true
+  become: true
+
+- name: "enable NTP services on the head node with a specific server"
+  lineinfile:
+    path: /etc/chrony.conf
+    line: 'server "{{ntp_server}}"'
+    state: present
+    backup: yes
+
+- name: "enable NTP services on the head node with a specific server part 2"
+  lineinfile:
+    path: /etc/chrony.conf
+    insertafter: 'server "{{ntp_server}}"'
+    line: 'allow all'
+    state: present
+    backup: yes
+
+- name: restart chronyd service
+  service:
+    name: chronyd
+    state: restarted
+
+############### Slurm
+
+- name: "Install ohpc-slurm-server"
+  dnf:
+    name: ohpc-slurm-server
+    state: latest
+
+- name: 3.4 Add resource management services on master node
+  command: cp /etc/slurm/slurm.conf.ohpc /etc/slurm/slurm.conf
+
+- name: 3.4 Add resource management services on master node part 2
+  command: perl -pi -e "s/ControlMachine=\S+/ControlMachine={{openHPC_headnode_name}}/" /etc/slurm/slurm.conf
+
+###################### Install packages
+
+- name: "Install ohpc-slurm-server"
+  dnf:
+    name: 
+    - epel-release
+    state: latest
+
+
+#################################################
+
+- name: 3.8.4.3 Increase locked memory limit
+  command: perl -pi -e 's/# End of file/\* soft memlock unlimited\n$&/s' /etc/security/limits.conf
+
+- name: 3.8.4.3 Increase locked memory limit part 2
+  command: perl -pi -e 's/# End of file/\* hard memlock unlimited\n$&/s' /etc/security/limits.conf
+
+
+- name: "Example1: Validate if a String or line is present in the file"
+  become: yes
+  become_user: root
+  tags: example1
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+      line: "LogLevel debug"
+      state: present
+      backup: yes
+      check_mode: yes
+      register: example1out
+
+- name: "Example2: Add the line if it does not exist"
+        become: yes
+        become_user: root
+        tags: example2
+        lineinfile:
+          path: /etc/httpd/conf/httpd.conf
+          line: "LogLevel debug"
+          state: present
+          backup: yes
+        register: example2out
+
+
+- name: Configure kernel parameters
+  lineinfile:
+    dest: /etc/sysctl.conf
+    regexp: "^{{ item.property | regex_escape() }}="
+    line: "{{ item.property }}={{ item.value }}"
+  with_items:
+    - { property: 'kernel.shmall', value: '2097152' }
+    - { property: 'kernel.shmmax', value: '134217728' }
+    - { property: 'fs.file-max', value: '65536' }
+
+- name: add openHPC repository
+    yum_repository:
+      name: “{{ openHPC_repo_name1 }}“
+      description: “{{ openHPC_repo_description1 }}“
+      baseurl: "{{ openHPC_repo_baseurl1 }}"
+      gpgcheck: yes
+      gpgkey: file:///etc/pki/RPM-GPG-KEY-example

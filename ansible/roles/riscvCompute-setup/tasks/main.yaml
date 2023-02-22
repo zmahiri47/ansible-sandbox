@@ -1,0 +1,10 @@
+---
+- name: Stop if target OS is not supported
+  assert:
+    that:
+      - ansible_facts['distribution'] == "Debian"
+    fail_msg: "This playbook doesn't support the target system."
+
+ansible_os_family: "Debian"
+ansible_os_family: "RedHat"
+ansible_pkg_mgr: "yum"

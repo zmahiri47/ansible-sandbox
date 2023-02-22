@@ -1,0 +1,5 @@
+repo_name1: OpenHPC repository
+repo_description1: RHEL packages for production only
+repo_baseurl1: http://repo.example.com/rhel-p-stage
+
+ntp_server: 105.128.2.84

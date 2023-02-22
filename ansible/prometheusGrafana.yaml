@@ -1,0 +1,30 @@
+- name: install monitoring stack
+  hosts: monitorserver
+  become: yes
+  roles:
+  - prometheus
+  - grafana
+- name: install node-exporter
+  hosts: nodeservers
+  become: yes
+  roles:
+  - node-exporter
+
+#- hosts: cont
+#  roles:
+#  - sal-users
+
+#- hosts: appServer
+#  roles: appServer-setup
+
+#- hosts: devServer
+#  roles: devServer-setup
+
+#- hosts: armCompute
+#  roles: armCompute-setup
+
+#- hosts: riscvCompute
+#  roles: riscvCompute-setup
+
+
+                      

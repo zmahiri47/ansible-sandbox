@@ -1,0 +1,6 @@
+---
+- name: install a package
+    package:
+      name: 
+      - n
+      state: installed

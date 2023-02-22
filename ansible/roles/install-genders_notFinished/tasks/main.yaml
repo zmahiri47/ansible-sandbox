@@ -1,0 +1,60 @@
+---
+# Install genders
+#[sms]# yum -y install genders-ohpc
+
+- name: 3.8.4.10 Add genders (Install)
+  dnf:
+    name: genders-ohpc
+    state: latest
+
+# Generate a sample genders file
+#[sms]# echo -e "${sms_name}\tsms" > /etc/genders
+#[sms]# for ((i=0; i<$num_computes; i++)) ; do
+#echo -e "${c_name[$i]}\tcompute,bmc=${c_bmc[$i]}"
+#done >> /etc/genders
+
+- name: "3.8.4.9 Add ClusterShell (Generate a sample genders file - add head nodes)"
+  become: yes
+  lineinfile:
+    path: /etc/clustershell/groups.d/local.cfg
+    line: '"{{headnode_name}}"\tsms'
+    state: present
+    backup: yes
+
+- name: "3.8.4.9 Add ClusterShell (Generate a sample genders file - add compute nodes)"
+  lineinfile:
+    path: /etc/sudoers
+    line: '{{item}}   ALL=(ALL)       NOPASSWD: ALL'
+    state: present
+    create: yes
+    validate: 'visudo -cf %s'
+  loop:
+    - Admin.Linux
+    - Admin.Unix
+
+
+
+
+#### 
+#- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+#- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+#  with_items:
+#  - mv local.cfg local.cfg.orig
+#  - echo "adm: ${sms_name}" > local.cfg
+#  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+#  - echo "all: @adm,@compute" >> local.cfg
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'adm: "{{headnode_name}}"'
+#    state: present
+#    backup: yes
+
+
+
+
+
+
+

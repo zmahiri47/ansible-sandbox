@@ -1,0 +1,51 @@
+---
+- name: 3.8.4.9 Add ClusterShell (Install)
+  ansible.builtin.dnf:
+    name: clustershell
+    state: latest
+
+#### 
+- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+  with_items:
+  - mv local.cfg local.cfg.orig
+  - echo "adm: ${sms_name}" > local.cfg
+  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+  - echo "all: @adm,@compute" >> local.cfg
+
+- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+  become: yes
+  lineinfile:
+    path: /etc/clustershell/groups.d/local.cfg
+    line: 'adm: "{{headnode_name}}"'
+    state: present
+    backup: yes
+
+- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+  become: yes
+  lineinfile:
+    path: /etc/clustershell/groups.d/local.cfg
+    line: 'compute: "{{compute_prefix}}"[1-"{{num_computes}}"]'
+    state: present
+    backup: yes
+
+- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+  become: yes
+  lineinfile:
+    path: /etc/clustershell/groups.d/local.cfg
+    line: 'all: @adm,@compute'
+    state: present
+    backup: yes
+
+# 3.8.4.12 Add NHC
+
+
+# Install NHC on master and compute nodes
+[sms]# yum -y install nhc-ohpc
+[sms]# yum -y --installroot=$CHROOT install nhc-ohpc
+
+# Register as SLURM's health check program
+[sms]# echo "HealthCheckProgram=/usr/sbin/nhc" >> /etc/slurm/slurm.conf
+[sms]# echo "HealthCheckInterval=300" >> /etc/slurm/slurm.conf # execute every five minutes
+
+

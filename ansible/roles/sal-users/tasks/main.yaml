@@ -1,0 +1,41 @@
+---
+#- name: add group "app-sudoers"
+#  become_user: root
+#  group: 
+#    name: app-sudoers
+
+- name: reading the csv file
+  read_csv:
+    path: ./roles/sal-users/files/dummyuserlist.csv
+  register: user_list
+  delegate_to: localhost
+
+- name: display user_list data
+  debug:
+    var: user_list.list
+
+- name: extract Username from all dictionaries
+  debug:
+    msg: "{{ item.Username }}"
+  loop: "{{ user_list.list }}"
+
+- name: create users from the csv
+  user:
+    name: "{{ item.Username }}"
+    uid: "{{ item.UID }}"
+#    groups: "{{ item.Groups }}"
+#    append: true
+#    password: "{{ item.Password | password_hash('sha512') }}"
+    comment: "{{ item.First_name }} {{ item.Last_name }}"
+    createhome: true
+    state: present
+  loop: "{{ user_list.list }}"
+  become: true
+
+- name: add user ssh keys
+  authorized_key: 
+    user: "{{ item.Username }}"
+    state: present
+    key: "{{ lookup('file','./roles/sal-users/files/{{item.Username}}-key.pub') }}"
+  loop: "{{ user_list.list }}"
+  become: true

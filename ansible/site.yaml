@@ -1,0 +1,18 @@
+- hosts: cont
+  roles:
+  - sal-users
+
+#- hosts: appServer
+#  roles: appServer-setup
+
+#- hosts: devServer
+#  roles: devServer-setup
+
+#- hosts: armCompute
+#  roles: armCompute-setup
+
+#- hosts: riscvCompute
+#  roles: riscvCompute-setup
+
+
+                      

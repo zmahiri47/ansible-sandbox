@@ -1,0 +1,67 @@
+---
+# 3.8.4.13 Add GEOPM 
+# The Global Extensible Open Power Manager (GEOPM) is a framework for exploring power and energy 
+# optimizations targeting high performance computing. The GEOPM package provides built-in features 
+# ranging from static management of power policy for each individual compute node, to dynamic 
+# coordination of the power policy and performance across all compute nodes hosting an MPI 
+# application on a portion of a distributed computing system. The dynamic coordination is 
+# implemented as a hierarchical control system for scalable communication and decentralized control.
+
+# Disable Intel pstate driver for compute nodes as it interferes with GEOPM's operation.
+#[sms]# export kargs="${kargs} intel_pstate=disable"
+
+- name: "3.8.4.9 Add ClusterShell (Disable Intel pstate driver)"
+  become: yes
+  register: disable_intel_pstate_driver
+  command: 'export kargs="${kargs} intel_pstate=disable"'
+
+- debug:
+    var: disable_intel_pstate_driver.stdout_lines
+
+
+# GEOPM uses the msr-safe kernel module to allow users read/write access to whitelisted model 
+# specific registers (MSRs). An associated Slurm plugin ensures that MSRs modified within a 
+# user's slurm job are reset to their original state after job completion.
+
+# Install msr-safe kernel module and SLURM plugin into compute image
+#[sms]# yum -y --installroot=$CHROOT install kmod-msr-safe-ohpc
+#[sms]# yum -y --installroot=$CHROOT install msr-safe-ohpc
+#[sms]# yum -y --installroot=$CHROOT install msr-safe-slurm-ohpc
+
+- name: "3.8.4.9 Add ClusterShell (Install msr-safe kernel module and SLURM plugin)"
+  become: yes
+  dnf:
+    name: 
+    - kmod-msr-safe-ohpc
+    - msr-safe-ohpc
+    - msr-safe-slurm-ohpc
+    state: latest
+
+#- name: 3.8.4.9 Add ClusterShell (Install)
+#  ansible.builtin.dnf:
+#    name: clustershell
+#    state: latest
+
+#### 
+#- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+#- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+#  with_items:
+#  - mv local.cfg local.cfg.orig
+#  - echo "adm: ${sms_name}" > local.cfg
+#  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+#  - echo "all: @adm,@compute" >> local.cfg
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'adm: "{{headnode_name}}"'
+#    state: present
+#    backup: yes
+
+
+
+
+
+
+

@@ -1,0 +1,26 @@
+---
+- name: Stop if target OS is not supported
+  assert:
+    that:
+      - ansible_facts['distribution'] == "Debian"
+    fail_msg: "This playbook doesn't support the target system."
+
+#ansible_os_family: "Debian"
+#ansible_os_family: "RedHat"
+#ansible_pkg_mgr: "yum"
+
+#- name: Update apt cache and make sure Vim is installed 
+#    apt:
+#      name: 
+#      - vim
+#      - curl
+#      update_cache: yes
+
+- name: Loop through packages to install    
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    loop:
+    - vim
+    - curl
+    - unzip

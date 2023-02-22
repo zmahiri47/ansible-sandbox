@@ -1,0 +1,8 @@
+---
+- name: "SAL Lab motd"
+  copy:
+    src: motd,j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: '644'

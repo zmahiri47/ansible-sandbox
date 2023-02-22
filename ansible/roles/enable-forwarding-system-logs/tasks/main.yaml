@@ -1,0 +1,51 @@
+---
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf  
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'module(load="imudp")' >> /etc/rsyslog.d/ohpc.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo 'input(type="imudp" port="514")' >> /etc/rsyslog.d/ohpc.conf
+
+
+- name: restart rsyslog service
+  service:
+    name: rsyslog
+    state: restarted
+
+
+# Define compute node forwarding destination
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo "*.* @"{{rsyslog_server_ip}}":514" >> /etc/rsyslog.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: echo "Target=\""{{rsyslog_server_ip}}"\" Protocol=\"udp\"" >> /etc/rsyslog.conf
+
+# Disable most local logging on computes. Emergency and boot logs will remain on the compute nodes
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: perl -pi -e "s/^\*\.info/\\#\*\.info/" /etc/rsyslog.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: perl -pi -e "s/^authpriv/\\#authpriv/" /etc/rsyslog.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: perl -pi -e "s/^mail/\\#mail/" /etc/rsyslog.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: perl -pi -e "s/^cron/\\#cron/" /etc/rsyslog.conf
+
+- name: From openHPC , 3.8.4.7 Enable forwarding of system logs
+  command: perl -pi -e "s/^uucp/\\#uucp/" /etc/rsyslog.conf

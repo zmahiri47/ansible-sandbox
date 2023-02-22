@@ -1,0 +1,66 @@
+---
+# ansible-playbook "yourplaybookname.yaml" -i ./hosts -e "new_go_version=...."
+# https://go.dev/dl/go1.19.5.linux-amd64.tar.gz
+
+- debug: msg="play_hosts={{play_hosts}}"
+   
+- debug: msg="install_root={{install_root}}"
+  
+- debug: msg="home_dir={{ home_dir }}"
+
+- name: check current golang version
+  command: bash -c "/usr/local/go/bin/go version|sed -e 's/go version go//g'|cut -d' ' -f1"
+  ignore_errors: yes
+  register: go_version
+  changed_when: false
+
+- debug: msg="go_version={{go_version.stdout}}"
+- debug: msg="new_go_version={{new_go_version}}"
+
+- name: continue only when version is older
+  fail: msg="Version already exists"
+  when: go_version.stdout != "" and "go_version.stdout | version_compare('{{new_go_version}}', operator='ge', strict=True)"
+
+- debug: msg="continuing with installation"
+
+- name: download golang tar 
+  get_url:
+#    url: "https://storage.googleapis.com/golang/go{{new_go_version}}.linux-amd64.tar.gz"
+    url: "https://go.dev/dl/go{{new_go_version}}.linux-amd64.tar.gz"
+    dest: "{{install_root}}"
+    mode: 0440
+    
+- name: Remove old installation of Go
+  file:
+    path: /usr/local/go
+    state: absent
+  become: yes
+
+- name: Extract the Go tarball
+  unarchive:
+    src: "{{install_root}}/go{{new_go_version}}.linux-amd64.tar.gz"
+    dest: /usr/local
+    copy: no
+  become: yes
+
+- name: create go directories in install root
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: "{{file_owner}}"
+    group: "{{file_owner}}"
+    mode: 0775
+  with_items:
+  - "{{install_root}}/go"
+  - "{{install_root}}/go/bin"
+    
+- name: modify .bashrc
+  blockinfile:
+    dest: "{{home_dir}}/.bashrc"
+    block: |
+      export GOPATH=$HOME/go
+      export GOBIN=$GOPATH/bin
+      export PATH=$GOBIN:$PATH:/usr/local/go/bin
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - changes for golang'
+    insertafter: EOF
+    create: yes

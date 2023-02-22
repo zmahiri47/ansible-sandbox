@@ -1,0 +1,84 @@
+---
+# 3.8.4.11 Add ConMan 
+# ConMan is a serial console management program designed to support a 
+# large number of console devices and simultaneous users. It supports logging console 
+# device output and connecting to compute node consoles via IPMI serial-over-lan.
+
+# Install conman to provide a front-end to compute consoles and log output
+#[sms]# yum -y install conman-ohpc
+# Configure conman for computes (note your IPMI password is required for console access)
+- name: 3.8.4.11 Add ConMan (Install)
+  ansible.builtin.dnf:
+    name: conman-ohpc
+    state: latest
+
+#### 
+#- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+#- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+#  with_items:
+#  - mv local.cfg local.cfg.orig
+#  - echo "adm: ${sms_name}" > local.cfg
+#  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+#  - echo "all: @adm,@compute" >> local.cfg
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'adm: "{{headnode_name}}"'
+#    state: present
+#    backup: yes
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'compute: "{{compute_prefix}}"[1-"{{num_computes}}"]'
+#    state: present
+#    backup: yes
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'all: @adm,@compute'
+#    state: present
+#    backup: yes
+
+
+[sms]# for ((i=0; i<$num_computes; i++)) ; do
+echo -n 'CONSOLE name="'${c_name[$i]}'" dev="ipmi:'${c_bmc[$i]}'" '
+echo 'ipmiopts="'U:${bmc_username},P:${IPMI_PASSWORD:-undefined},W:solpayloadsize'"'
+done >> /etc/conman.conf
+
+- name: 3.8.4.11 Add ConMan (Update conman.conf - add console name)
+  become: yes
+  lineinfile:
+    path: /etc/conman.conf
+    line: 'CONSOLE name="'${c_name[$i]}'" dev="ipmi:'${c_bmc[$i]}'" '
+    state: present
+    backup: yes
+
+- name: 3.8.4.11 Add ConMan (Update conman.conf - add ipmi options)
+  become: yes
+  lineinfile:
+    path: /etc/conman.conf
+    line: 'ipmiopts="'U:${bmc_username},P:${IPMI_PASSWORD:-undefined},W:solpayloadsize'"'
+    state: present
+    backup: yes
+
+
+
+# Enable and start conman
+#[sms]# systemctl enable conman
+#[sms]# systemctl start conman
+
+- name: Enable and start conman
+  service: started
+    name: conman
+    state: started
+    enabled: true 
+
+# Note that an additional kernel boot option is typically necessary to enable serial console 
+# output. This option is highlighted in §3.9.4 after compute nodes have been registered 
+# with the provisioning system.

@@ -1,0 +1,33 @@
+---
+- name: Stop if target OS is not supported
+  assert:
+    that:
+      - ansible_facts['distribution'] == "Debian"
+    fail_msg: "This playbook doesn't support the target system."
+
+# ansible_os_family: "Debian"
+# ansible_os_family: "RedHat"
+# ansible_pkg_mgr: "yum"
+
+# Make sure that it is not yet already installed
+
+- name: Check if my_package is installed
+  command: dpkg-query -W my_package
+  register: my_package_check_deb
+  failed_when: my_package_check_deb.rc > 1
+  changed_when: my_package_check_deb.rc == 1
+
+# We can check the return code from a registered command by using the .rc attribute
+
+- name: Download my_package
+  get_url: 
+    url="{{ my_package_url }}"
+    dest="/home/{{ ansible_env.USER }}/Downloads/{{ my_package_name }}.deb"
+  when: my_package_check_deb.rc == 1
+
+# Install the package if the package was not previously installed
+
+- name: Install my_package
+  apt: deb="/home/{{ ansible_env.USER }}/Downloads/{{ my_package_name }}.deb"
+  sudo: true
+  when: my_package_check_deb.rc == 1

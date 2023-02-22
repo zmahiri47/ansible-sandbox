@@ -1,0 +1,48 @@
+---
+#3.8.5 Import files
+#Import arbitrary files from the provisioning server for distribution to managed hosts. 
+#This is one way to distribute user credentials to compute nodes.
+
+[sms]# wwsh file import /etc/passwd
+[sms]# wwsh file import /etc/group
+[sms]# wwsh file import /etc/shadow
+
+
+# Similarly, to import the cryptographic key that is required by the munge authentication 
+# library to be available on every host in the resource management pool, issue the following:
+
+[sms]# wwsh file import /etc/munge/munge.key
+
+
+
+
+
+#- name: 3.8.4.9 Add ClusterShell (Install)
+#  ansible.builtin.dnf:
+#    name: clustershell
+#    state: latest
+
+#### 
+#- name: 3.8.4.9 Add ClusterShell (Setup node definitions)
+#- command: "{{ item }} chdir=/etc/clustershell/groups.d"
+#  with_items:
+
+#  - mv local.cfg local.cfg.orig
+#  - echo "adm: ${sms_name}" > local.cfg
+#  - echo "compute: ${compute_prefix}[1-${num_computes}]" >> local.cfg
+#  - echo "all: @adm,@compute" >> local.cfg
+
+#- name: 3.8.4.9 Add ClusterShell (Update local.cfg)
+#  become: yes
+#  lineinfile:
+#    path: /etc/clustershell/groups.d/local.cfg
+#    line: 'adm: "{{headnode_name}}"'
+#    state: present
+#    backup: yes
+
+
+
+
+
+
+

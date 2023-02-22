@@ -1,0 +1,229 @@
+---
+# 4.1 Development Tools
+# To aid in general development efforts, OpenHPC provides recent versions of the GNU autotools 
+# collection, the Valgrind memory debugger, EasyBuild, and Spack.
+
+# Install autotools meta-package
+#[sms]# yum -y install ohpc-autotools
+#[sms]# yum -y install EasyBuild-ohpc
+#[sms]# yum -y install hwloc-ohpc
+#[sms]# yum -y install spack-ohpc
+#[sms]# yum -y install valgrind-ohpc
+
+- name: "4.1 Development Tools (Install GNU autotools collection, the Valgrind memory debugger, EasyBuild, and Spack)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-autotools
+    - EasyBuild-ohpc
+    - hwloc-ohpc
+    - spack-ohpc
+    - valgrind-ohpc
+    state: latest
+
+#- name: "3.8.4.9 Add ClusterShell (Disable Intel pstate driver)"
+#  become: yes
+#  register: disable_intel_pstate_driver
+#  command: 'export kargs="${kargs} intel_pstate=disable"'
+
+#- debug:
+#    var: disable_intel_pstate_driver.stdout_lines
+
+
+# GEOPM uses the msr-safe kernel module to allow users read/write access to whitelisted model 
+# specific registers (MSRs). An associated Slurm plugin ensures that MSRs modified within a 
+# user's slurm job are reset to their original state after job completion.
+
+# Install msr-safe kernel module and SLURM plugin into compute image
+#[sms]# yum -y --installroot=$CHROOT install kmod-msr-safe-ohpc
+#[sms]# yum -y --installroot=$CHROOT install msr-safe-ohpc
+#[sms]# yum -y --installroot=$CHROOT install msr-safe-slurm-ohpc
+
+- name: "4.1 Development Tools (Install msr-safe kernel module and SLURM plugin)"
+  become: yes
+  dnf:
+    name: 
+    - kmod-msr-safe-ohpc
+    - msr-safe-ohpc
+    - msr-safe-slurm-ohpc
+    state: latest
+
+# 4.2 Compilers
+# OpenHPC presently packages the GNU compiler toolchain integrated with the underlying Lmod 
+# modules system in a hierarchical fashion. The modules system will conditionally present 
+# compiler-dependent software based on the toolchain currently loaded.
+
+- name: "4.2 Compilers (Install GNU compiler toolchain)"
+  become: yes
+  dnf:
+    name: 
+    - gnu9-compilers-ohpc
+    state: latest
+
+#4.3 MPI Stacks
+#For MPI development and runtime support, OpenHPC provides pre-packaged builds for a variety of MPI
+#families and transport layers. Currently available options and their applicability to various network trans-
+#ports are summarized in Table 1. The command that follows installs a starting set of MPI families that are
+#compatible with both ethernet and high-speed fabrics.
+
+- name: "4.3 MPI Stacks (Install a starting set of MPI families that are compatible with both ethernet and high-speed fabrics)"
+  become: yes
+  dnf:
+    name: 
+    - openmpi4-gnu9-ohpc 
+    - mpich-ofi-gnu9-ohpc
+    - mpich-ucx-gnu9-ohpc
+    - mvapich2-gnu9-ohpc
+    state: latest
+
+# 4.4 Performance Tools
+# OpenHPC provides a variety of open-source tools to aid in application performance analysis 
+# (refer to Appendix E for a listing of available packages). 
+
+# Install perf-tools meta-package
+#[sms]# yum -y install ohpc-gnu9-perf-tools
+
+- name: "4.4 Performance Tools (Install perf-tools meta-package)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-gnu9-perf-tools
+    state: latest
+
+# Optionally, the GEOPM power management framework can be installed using the convenience 
+# meta-package below. Note that GEOPM requires customization of the compute node environment 
+# to include an additional kernel module as highlighted previously in §3.8.4.13):
+
+# Install GEOPM meta-package
+#[sms]# yum -y install ohpc-gnu9-geopm
+
+- name: "4.4 Performance Tools (Install GEOPM meta-package)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-gnu9-geopm 
+    state: latest
+
+# 4.5 Setup default development environment
+# System users often find it convenient to have a default development environment in place so that 
+# compilation can be performed directly for parallel programs requiring MPI. This setup can be 
+# conveniently enabled via modules and the OpenHPC modules environment is pre-configured to load 
+# an ohpc module on login (if present). The following package install provides a default environment
+# that enables autotools, the GNU compiler toolchain, and the OpenMPI stack.
+
+- name: "4.5 Setup default development environment (Install a default environment that enables autotools, the GNU compiler toolchain, and the OpenMPI stack)"
+  become: yes
+  dnf:
+    name: 
+    - lmod-defaults-gnu9-openmpi4-ohpc
+    state: latest
+
+# 4.6 3rd Party Libraries and Tools
+# OpenHPC provides pre-packaged builds for a number of popular open-source tools and libraries used 
+# by HPC applications and developers. For example, OpenHPC provides builds for FFTW and HDF5 
+# (including serial and parallel I/O support), and the GNU Scientific Library (GSL). Again, multiple
+# builds of each package are available in the OpenHPC repository to support multiple compiler and 
+# MPI family combinations where appropriate. Note, however, that not all combinatorial permutations
+# may be available for components where there are known license incompatibilities. The general 
+# naming convention for builds provided by OpenHPC is to append the compiler and MPI family name 
+# that the library was built against directly into the package name.
+
+# [sms]# yum search petsc-gnu9 ohpc
+# Loaded plugins: fastestmirror
+# Loading mirror speeds from cached hostfile
+# =========================== N/S matched: petsc-gnu9, ohpc ===========================
+# petsc-gnu9-impi-ohpc.x86_64 : Portable Extensible Toolkit for Scientific Computation
+# petsc-gnu9-mpich-ohpc.x86_64 : Portable Extensible Toolkit for Scientific Computation
+# petsc-gnu9-mvapich2-ohpc.x86_64 : Portable Extensible Toolkit for Scientific Computation
+# petsc-gnu9-openmpi4-ohpc.x86_64 : Portable Extensible Toolkit for Scientific Computation
+
+# For convenience, OpenHPC provides package aliases for these 3rd party libraries and utilities 
+# that can be used to install available libraries for use with the GNU compiler family toolchain. 
+# For parallel libraries, aliases are grouped by MPI family toolchain so that administrators can 
+# choose a subset should they favor a particular MPI stack.
+
+# Install 3rd party libraries/tools meta-packages built with GNU toolchain
+#[sms]# yum -y install ohpc-gnu9-serial-libs
+#[sms]# yum -y install ohpc-gnu9-io-libs
+#[sms]# yum -y install ohpc-gnu9-python-libs
+#[sms]# yum -y install ohpc-gnu9-runtimes
+
+- name: "4.6 3rd Party Libraries and Tools (Install 3rd party libraries/tools meta-packages built with GNU toolchain)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-gnu9-serial-libs
+    - ohpc-gnu9-io-libs
+    - ohpc-gnu9-python-libs
+    - ohpc-gnu9-runtimes
+    state: latest
+
+
+# Install parallel lib meta-packages for all available MPI toolchains
+#[sms]# yum -y install ohpc-gnu9-mpich-parallel-libs
+#[sms]# yum -y install ohpc-gnu9-openmpi4-parallel-libs
+
+- name: "4.6 3rd Party Libraries and Tools (Install parallel lib meta-packages for all available MPI toolchains)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-gnu9-mpich-parallel-libs
+    - ohpc-gnu9-openmpi4-parallel-libs
+    state: latest
+
+# 4.7 Optional Development Tool Builds
+# In addition to the 3rd party development libraries built using the open source toolchains 
+# mentioned in §4.6, OpenHPC also provides optional compatible builds for use with the compilers 
+# and MPI stack included in newer versions of the Intel® Parallel Studio XE software suite. These 
+# packages provide a similar hierarchical user environment experience as other compiler and MPI 
+# families present in OpenHPC. To take advantage of the available builds, the Parallel Studio 
+# software suite must be obtained and installed separately. Once installed locally, the OpenHPC 
+# compatible packages can be installed using standard package manager semantics. Note that licenses 
+# are provided free of charge for many categories of use. In particular, licenses for compilers 
+# and developments tools are provided at no cost to academic researchers or developers
+#contributing to open-source software projects. More information on this program can be found at:
+#https://software.intel.com/en-us/qualify-for-free-software
+
+# Install OpenHPC compatibility packages (requires prior installation of Parallel Studio)
+#[sms]# yum -y install intel-compilers-devel-ohpc
+#[sms]# yum -y install intel-mpi-devel-ohpc
+
+- name: "4.6 3rd Party Libraries and Tools (Install OpenHPC compatibility packages (requires prior installation of Parallel Studio))"
+  become: yes
+  dnf:
+    name: 
+    - intel-compilers-devel-ohpc
+    - intel-mpi-devel-ohpc
+    state: latest
+
+
+# Optionally, choose the Omni-Path enabled build for MVAPICH2. Otherwise, skip to retain IB variant
+#[sms]# yum -y install mvapich2-psm2-intel-ohpc
+
+# Install 3rd party libraries/tools meta-packages built with Intel toolchain
+#[sms]# yum -y install ohpc-intel-serial-libs
+#[sms]# yum -y install ohpc-intel-geopm
+#[sms]# yum -y install ohpc-intel-io-libs
+#[sms]# yum -y install ohpc-intel-perf-tools
+#[sms]# yum -y install ohpc-intel-python3-libs
+#[sms]# yum -y install ohpc-intel-runtimes
+#[sms]# yum -y install ohpc-intel-mpich-parallel-libs
+#[sms]# yum -y install ohpc-intel-mvapich2-parallel-libs
+#[sms]# yum -y install ohpc-intel-openmpi4-parallel-libs
+#[sms]# yum -y install ohpc-intel-impi-parallel-libs
+
+- name: "4.6 3rd Party Libraries and Tools (Install 3rd party libraries/tools meta-packages built with Intel toolchain)"
+  become: yes
+  dnf:
+    name: 
+    - ohpc-intel-serial-libs
+    - ohpc-intel-geopm
+    - ohpc-intel-io-libs
+    - ohpc-intel-perf-tools
+    - ohpc-intel-python3-libs
+    - ohpc-intel-runtimes
+    - ohpc-intel-mpich-parallel-libs
+    - ohpc-intel-mvapich2-parallel-libs
+    - ohpc-intel-openmpi4-parallel-libs
+    - ohpc-intel-impi-parallel-libs
+    state: latest

@@ -1,0 +1,3 @@
+headnode_name: sal-armAmpereHN
+compute_prefix: sal-armAmpereCN
+num_computes: ##
